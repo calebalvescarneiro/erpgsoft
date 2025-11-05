@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import {
   BatchWebhookDto,
   ListByCategoryQuery,
@@ -47,7 +47,13 @@ export class IntegrationsController {
   }
 
   @Get('webhook')
-  webhookEvents(@Query('providerId') providerId?: string) {
-    return this.integrations.listWebhookEvents(providerId);
+  webhookEvents(
+    @Query('tenantId') tenantId?: string,
+    @Query('providerId') providerId?: string
+  ) {
+    if (!tenantId) {
+      throw new BadRequestException('tenantId is required to list webhook events');
+    }
+    return this.integrations.listWebhookEvents(tenantId, providerId);
   }
 }

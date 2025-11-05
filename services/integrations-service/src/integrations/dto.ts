@@ -68,6 +68,9 @@ export class ListByCategoryQuery {
 
 export class BatchWebhookDto {
   @IsString()
+  tenantId!: string;
+
+  @IsString()
   providerId!: string;
 
   @IsArray()
