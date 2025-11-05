@@ -1,6 +1,7 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   SetMetadata,
   UnauthorizedException
@@ -8,6 +9,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { canPerform, Role } from './roles.js';
 import { AuthService } from './auth.service.js';
+import { resolveTenantFromHeaders } from '../common/tenant-context.js';
 
 export const ROLES_KEY = 'roles';
 export const RequireRole = (...roles: Role[]) => SetMetadata(ROLES_KEY, roles);
@@ -32,6 +34,14 @@ export class RolesGuard implements CanActivate {
     }
     const token = authHeader.replace('Bearer ', '');
     const payload = this.authService.decode(token);
+
+    const tenantFromHeader = resolveTenantFromHeaders(request.headers);
+    if (!tenantFromHeader) {
+      throw new UnauthorizedException('Tenant header is required');
+    }
+    if (tenantFromHeader !== payload.tenantId) {
+      throw new ForbiddenException('Tenant mismatch');
+    }
 
     return requiredRoles.some((role) => payload.roles.some((assigned) => canPerform(role, assigned)));
   }
