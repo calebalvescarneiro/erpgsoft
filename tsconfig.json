@@ -1,0 +1,7 @@
+{
+  "extends": "@erpgsoft/tsconfig/base.json",
+  "compilerOptions": {
+    "baseUrl": "."
+  },
+  "include": ["packages", "apps", "services", "infra"]
+}
