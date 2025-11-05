@@ -43,7 +43,6 @@ export class BillingController {
   @Post('transactions')
   recordTransaction(@Body() dto: RecordTransactionDto) {
     return this.billing.recordTransaction({
-      tenantId: 'unknown',
       subscriptionId: dto.subscriptionId,
       amount: dto.amount,
       type: dto.type,
