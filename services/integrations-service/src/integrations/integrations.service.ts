@@ -34,10 +34,16 @@ export interface IntegrationSyncResult {
   message?: string;
 }
 
+interface StoredWebhookEvent extends WebhookEventDto {
+  tenantId: string;
+  providerId: string;
+  receivedAt: string;
+}
+
 @Injectable()
 export class IntegrationsService {
   private readonly registry = new Map<string, IntegrationConfig>();
-  private readonly webhooks: WebhookEventDto[] = [];
+  private readonly webhooks: StoredWebhookEvent[] = [];
 
   registerIntegration(payload: RegisterIntegrationDto) {
     const provider = findProvider(payload.providerId);
@@ -113,21 +119,27 @@ export class IntegrationsService {
   }
 
   handleWebhookBatch(payload: BatchWebhookDto) {
-    const provider = findProvider(payload.providerId);
+    const integration = this.getIntegration(payload.tenantId, payload.providerId);
+    const provider = integration.provider;
     payload.events.forEach((event) => {
+      const receivedAt = dayjs().toISOString();
       this.webhooks.push({
         ...event,
-        payload: { ...event.payload, provider: provider.id, receivedAt: dayjs().toISOString() }
+        tenantId: payload.tenantId,
+        providerId: provider.id,
+        receivedAt,
+        payload: { ...event.payload, provider: provider.id, receivedAt }
       });
     });
     return { received: payload.events.length, provider };
   }
 
-  listWebhookEvents(providerId?: string) {
+  listWebhookEvents(tenantId: string, providerId?: string) {
+    const events = this.webhooks.filter((event) => event.tenantId === tenantId);
     if (!providerId) {
-      return this.webhooks;
+      return events;
     }
-    return this.webhooks.filter((event) => event.payload.provider === providerId);
+    return events.filter((event) => event.providerId === providerId);
   }
 
   private buildKey(tenantId: string, providerId: string) {
