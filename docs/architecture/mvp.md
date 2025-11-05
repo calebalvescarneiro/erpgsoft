@@ -14,12 +14,14 @@ Descreve a arquitetura alvo para o MVP do ERP, destacando os principais componen
   - Monitoramento de UX via LogRocket/Sentry e analytics com Segment.
 
 ## Backend
-- **Arquitetura**: Serviços desacoplados em uma abordagem modular dentro de um monólito distribuído (modular monolith) para acelerar o MVP e preparar a transição para microsserviços.
+- **Arquitetura**: Serviços desacoplados em uma abordagem modular dentro de um monólito distribuído (modular monolith) para acelerar o MVP e preparar a transição para microsserviços. A fundação já contempla serviços dedicados de autenticação, billing, fiscal, fidelidade/e-wallet e integrações externas.
 - **Tecnologias**: Node.js (NestJS) com TypeScript; comunicação síncrona via REST/GraphQL e assíncrona via fila (AWS SQS ou RabbitMQ).
 - **Módulos chave**:
   - Autenticação e autorização com suporte a múltiplos tenants, usando OAuth 2.0/OpenID Connect.
   - Gestão fiscal e contábil alinhada à legislação brasileira, com motores de cálculo configuráveis.
   - Módulo financeiro (contas a pagar/receber), estoque e faturamento básico.
+  - Carteira digital e programas de fidelidade desacoplados, expostos via API dedicada.
+  - Serviço de integrações para orquestrar conectores (iFood, WhatsApp, TEF, cardápio online) e centralizar webhooks.
 - **Infraestrutura**:
   - Containerização com Docker e orquestração inicial via AWS ECS.
   - CI/CD utilizando GitHub Actions com pipelines de build, testes e deploy automatizado.
@@ -36,6 +38,12 @@ Descreve a arquitetura alvo para o MVP do ERP, destacando os principais componen
 - **Fiscais**: Integração com SEFAZ via provedores certificados (TecnoSpeed) para emissão de NF-e/NFS-e.
 - **Financeiras**: APIs bancárias (Open Finance) para conciliação automática e emissão de boletos via parceiros (Gerencianet, Banco Inter).
 - **Terceiros**: Conectores para CRM (HubSpot) e plataformas de e-commerce (VTEX) usando webhooks e filas para sincronização resiliente.
+
+## Serviços implementados para a próxima fase
+
+- **Fiscal Service** (`services/fiscal-service`): calcula tributos para múltiplos regimes (CPF, MEI, Simples, Lucro Presumido/Real), registra documentos fiscais e opera fila de contingência para NFC-e offline.
+- **Loyalty Service** (`services/loyalty-service`): gerencia carteiras digitais multi saldo (pontos, cashback, gift card), programas padrões e resgates controlados.
+- **Integrations Service** (`services/integrations-service`): centraliza conectores externos, registra credenciais por tenant, dispara sincronizações sob demanda e armazena webhooks em lote para posterior processamento.
 
 ## Fluxo de Onboarding Segmentado
 1. **Coleta de informações iniciais**
